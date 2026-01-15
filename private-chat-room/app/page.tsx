@@ -2,6 +2,9 @@
 
 import {useEffect, useState} from "react";
 import {nanoid} from "nanoid";
+import {useMutation} from "@tanstack/react-query";
+import {api} from "@/lib/eden";
+import {useRouter} from "next/dist/client/components/navigation";
 
 const ANIMALS = ["wolf", "dog", "hawk", "eagle"];
 const STORAGE_KEY = "chat_username";
@@ -13,6 +16,17 @@ const generateUsername = () => {
 
 export default function Home() {
     const [username, setUsername] = useState("")
+    const router = useRouter();
+
+    const {mutate: createRoom} = useMutation({
+        mutationFn: async () => {
+            const res = await api.room.create.post()
+
+            if (res.status === 200) {
+                router.push(`/room/${res.data?.roomId}`)
+            }
+        }
+    })
 
     useEffect(() => {
         const main = () => {
@@ -41,8 +55,10 @@ export default function Home() {
                             <p className={"px-4 py-2 text-center text-zinc-400"}>{username}</p>
                         </div>
                         <button
-                            className={"bg-zinc-200 text-zinc-900 w-full py-3 mt-3 hover:bg-zinc-50 transition-colors cursor-pointer font-bold"}>CREATE
-                            SECURE ROOM
+                            className={"bg-zinc-200 text-zinc-900 w-full py-3 mt-3 hover:bg-zinc-50 transition-colors cursor-pointer font-bold"}
+                            onClick={() => createRoom()}
+                        >
+                            CREATE SECURE ROOM
                         </button>
                     </div>
                 </div>
