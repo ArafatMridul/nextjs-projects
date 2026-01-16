@@ -4,6 +4,7 @@ import {redis} from "@/lib/Redis";
 import {authMiddleWare} from "@/app/api/[[...slugs]]/auth";
 import {Message, realtime} from "@/lib/realtime";
 import z from "zod";
+import cors from "@elysiajs/cors";
 
 const ROOM_TTL_SECS = 60 * 10; // time-to-live(ttl) : 10 mins
 
@@ -79,7 +80,18 @@ const messages = new Elysia({prefix: "/messages"}).use(authMiddleWare).post("/",
     })
 })
 
-export const app = new Elysia({prefix: '/api'}).use(rooms).use(messages)
+export const app = new Elysia({prefix: "/api"})
+    .use(
+        cors({
+            origin: [
+                "https://nextjs-projects-ljmju47cy-arafatmriduls-projects.vercel.app",
+            ],
+            methods: ["GET", "POST", "DELETE", "OPTIONS"],
+            credentials: true,
+        })
+    )
+    .use(rooms)
+    .use(messages);
 
 export const GET = app.fetch
 export const POST = app.fetch
