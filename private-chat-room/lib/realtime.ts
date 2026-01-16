@@ -1,4 +1,3 @@
-import {t} from "elysia";
 import {InferRealtimeEvents, Realtime} from "@upstash/realtime";
 import {redis} from "@/lib/Redis";
 import z from "zod"
@@ -15,8 +14,8 @@ const message = z.object({
 const schema = {
     chat: {
         message,
-        destroy: t.Object({
-            isDestroyed: t.Literal(true),
+        destroy: z.object({
+            isDestroyed: z.literal(true),
         })
     }
 }

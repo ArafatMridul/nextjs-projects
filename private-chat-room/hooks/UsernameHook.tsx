@@ -20,6 +20,7 @@ export const useUsername = () => {
             }
             const generatedName = generateUsername();
             localStorage.setItem(STORAGE_KEY, generatedName);
+            setUsername(generatedName);
         }
         main();
     }, [])
