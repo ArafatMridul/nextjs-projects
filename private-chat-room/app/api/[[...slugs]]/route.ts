@@ -81,7 +81,7 @@ const messages = new Elysia({prefix: "/messages"}).use(authMiddleWare).post("/",
 
 export const app = new Elysia({prefix: "/api"})
     .onAfterHandle(({set}) => {
-        set.headers['Access-Control-Allow-Origin'] = process.env.NEXT_PUBLIC_API_URL as string;
+        set.headers['Access-Control-Allow-Origin'] = "*";
         set.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, OPTIONS';
         set.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
     })
