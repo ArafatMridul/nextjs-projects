@@ -81,20 +81,9 @@ const messages = new Elysia({prefix: "/messages"}).use(authMiddleWare).post("/",
 })
 
 export const app = new Elysia({prefix: "/api"})
-    .use(
-        cors({
-            origin: isProd
-                ? (o) => {
-                    if (!o) return true;
-                    const origin =
-                        typeof o === "string"
-                            ? o
-                            : o.headers?.get("origin") ?? "";
-                    return origin.endsWith(".vercel.app");
-                }
-                : true,
-        })
-    )
+    .use(cors())
+    .use(rooms)
+    .use(messages);
 
 export const GET = app.fetch
 export const POST = app.fetch
