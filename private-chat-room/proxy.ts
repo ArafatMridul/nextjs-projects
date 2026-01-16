@@ -21,7 +21,7 @@ export const proxy = async (req: NextRequest) => {
 
     const existingToken = req.cookies.get("x-auth-token")?.value;
     if (existingToken && meta.connected.includes(existingToken)) {
-        return NextResponse.redirect(new URL(`/room/${roomId}`, req.url));
+        return NextResponse.next();
     }
 
     if (meta.connected.length >= 2) {
