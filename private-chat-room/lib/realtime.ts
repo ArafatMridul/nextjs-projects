@@ -1,0 +1,26 @@
+import {t} from "elysia";
+import {InferRealtimeEvents, Realtime} from "@upstash/realtime";
+import {redis} from "@/lib/Redis";
+import z from "zod"
+
+const message = z.object({
+    id: z.string(),
+    sender: z.string(),
+    text: z.string(),
+    timestamp: z.number(),
+    roomId: z.string(),
+    token: z.string().optional(),
+})
+
+const schema = {
+    chat: {
+        message,
+        destroy: t.Object({
+            isDestroyed: t.Literal(true),
+        })
+    }
+}
+
+export const realtime = new Realtime({schema, redis})
+export type RealtimeEvents = InferRealtimeEvents<typeof realtime>;
+export type Message = z.infer<typeof message>;
