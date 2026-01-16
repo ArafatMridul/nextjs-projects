@@ -2,6 +2,9 @@
 
 import {useParams} from "next/dist/client/components/navigation";
 import {useRef, useState} from "react";
+import {useMutation} from "@tanstack/react-query";
+import {api} from "@/lib/eden";
+import {useUsername} from "@/hooks/UsernameHook";
 
 const formatTimeRemaining = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -15,6 +18,7 @@ const Page = () => {
     const [timeRemaining, setTimeRemaining] = useState<number | null>(121)
     const [input, setInput] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
+    const {username} = useUsername()
 
     const {roomId} = useParams();
 
@@ -26,6 +30,13 @@ const Page = () => {
             setCopied(false);
         }, 2000);
     }
+
+    const {mutate: sendMessage, isPending} = useMutation({
+        mutationFn: async ({text}: { text: string }) => {
+            // @ts-ignore
+            await api.messages.post({sender: username, text}, {query: {roomId}});
+        }
+    })
 
     return (
         <main className={"h-screen flex flex-col"}>
@@ -71,7 +82,7 @@ const Page = () => {
                         <input autoFocus ref={inputRef} type="text" value={input}
                                onKeyDown={(e) => {
                                    if (e.key === "Enter" && input.trim()) {
-                                       // send message
+                                       sendMessage({text: input})
                                        inputRef.current?.focus();
                                    }
                                }}
@@ -80,6 +91,11 @@ const Page = () => {
                                className={"px-4 py-3 text-xl w-full focus:outline-none"}/>
                     </div>
                     <button
+                        onClick={() => {
+                            sendMessage({text: input});
+                            inputRef.current?.focus();
+                        }}
+                        disabled={!input.trim() || isPending}
                         className={"px-6 py-2 border border-zinc-400 bg-zinc-600 hover:bg-zinc-500 cursor-pointer transition-colors"}>SEND
                     </button>
                 </div>

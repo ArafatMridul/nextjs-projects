@@ -1,24 +1,16 @@
 "use client"
 
-import {useEffect, useState} from "react";
-import {nanoid} from "nanoid";
 import {useMutation} from "@tanstack/react-query";
 import {api} from "@/lib/eden";
 import {useRouter} from "next/dist/client/components/navigation";
+import {useUsername} from "@/hooks/UsernameHook";
 
-const ANIMALS = ["wolf", "dog", "hawk", "eagle"];
-const STORAGE_KEY = "chat_username";
-
-const generateUsername = () => {
-    const word = ANIMALS.at(Math.floor(Math.random() * ANIMALS.length));
-    return `anonymous-${word}-${nanoid(5)}`;
-}
 
 export default function Home() {
-    const [username, setUsername] = useState("")
+    const {username} = useUsername();
     const router = useRouter();
 
-    const {mutate: createRoom} = useMutation({
+    const {mutate: createRoom, isPending} = useMutation({
         mutationFn: async () => {
             const res = await api.room.create.post()
 
@@ -27,19 +19,6 @@ export default function Home() {
             }
         }
     })
-
-    useEffect(() => {
-        const main = () => {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                setUsername(stored);
-                return;
-            }
-            const generatedName = generateUsername();
-            localStorage.setItem(STORAGE_KEY, generatedName);
-        }
-        main();
-    }, [])
 
     return (
         <main className="min-h-screen w-full">
@@ -58,7 +37,7 @@ export default function Home() {
                             className={"bg-zinc-200 text-zinc-900 w-full py-3 mt-3 hover:bg-zinc-50 transition-colors cursor-pointer font-bold"}
                             onClick={() => createRoom()}
                         >
-                            CREATE SECURE ROOM
+                            {isPending ? "CREATING..." : "CREATE SECURE ROOM"}
                         </button>
                     </div>
                 </div>
