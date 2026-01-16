@@ -80,23 +80,19 @@ const messages = new Elysia({prefix: "/messages"}).use(authMiddleWare).post("/",
     })
 })
 
+export const app = new Elysia({prefix: "/api"})
     .use(
         cors({
-            origin: (origin) => {
-                // Allow same-origin / server calls
-                if (!origin) return true;
-
-                // If Elysia passes Request instead of string
-                if (origin instanceof Request) {
-                    const originHeader = origin.headers.get("origin");
-                    if (!originHeader) return true;
-                    return originHeader.endsWith(".vercel.app");
+            origin: isProd
+                ? (o) => {
+                    if (!o) return true;
+                    const origin =
+                        typeof o === "string"
+                            ? o
+                            : o.headers?.get("origin") ?? "";
+                    return origin.endsWith(".vercel.app");
                 }
-
-                // origin is string here
-                return origin.endsWith(".vercel.app");
-            },
-            methods: ["GET", "POST", "DELETE", "OPTIONS"],
+                : true,
         })
     )
 
