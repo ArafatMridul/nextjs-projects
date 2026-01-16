@@ -4,7 +4,6 @@ import {redis} from "@/lib/Redis";
 import {authMiddleWare} from "@/app/api/[[...slugs]]/auth";
 import {Message, realtime} from "@/lib/realtime";
 import z from "zod";
-import cors from "@elysiajs/cors";
 
 const ROOM_TTL_SECS = 60 * 10; // time-to-live(ttl) : 10 mins
 
@@ -81,7 +80,11 @@ const messages = new Elysia({prefix: "/messages"}).use(authMiddleWare).post("/",
 })
 
 export const app = new Elysia({prefix: "/api"})
-    .use(cors())
+    .onAfterHandle(({set}) => {
+        set.headers['Access-Control-Allow-Origin'] = process.env.NEXT_PUBLIC_API_URL as string;
+        set.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, OPTIONS';
+        set.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization';
+    })
     .use(rooms)
     .use(messages);
 
