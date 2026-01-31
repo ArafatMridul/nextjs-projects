@@ -7,10 +7,17 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import Link from "next/link";
 import { PenLine, Users, Sparkles, ArrowRight, Zap, Globe, Heart } from "lucide-react";
 import { motion } from "motion/react";
+import NavBar from "@/components/NavBar";
+import {useConvexAuth} from "convex/react";
 
 const Page = () => {
+    const {isAuthenticated} = useConvexAuth();
     return (
-        <div className="min-h-screen">
+        <>
+            <header>
+                <NavBar />
+            </header>
+        <main className="min-h-screen">
             {/* Hero Section */}
             <section className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
                 {/* Background gradient */}
@@ -58,7 +65,7 @@ const Page = () => {
                         className="flex flex-col sm:flex-row items-center justify-center gap-4"
                     >
                         <Button size="lg" className="w-full sm:w-auto px-8 group" asChild>
-                            <Link href="/signup">
+                            <Link href={isAuthenticated ? "/dashboard" : "/signin"}>
                                 Start writing free
                                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                             </Link>
@@ -336,8 +343,8 @@ const Page = () => {
                     </div>
                 </div>
             </motion.footer>
-        </div>
-
+        </main>
+        </>
     );
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import {useState, useTransition} from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,7 +9,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import {Mail, Lock, Eye, EyeOff, Loader2} from "lucide-react";
+import {authClient} from "@/lib/auth-client";
+import {useRouter} from "next/navigation";
+import {toast} from "sonner";
 
 const signinSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -21,6 +24,8 @@ type SigninFormData = z.infer<typeof signinSchema>;
 export default function SigninPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const {
     register,
@@ -32,15 +37,25 @@ export default function SigninPage() {
   });
 
   const onSubmit = async (data: SigninFormData) => {
-    setIsSubmitting(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Form submitted:", data);
+      startTransition(async () => {
+        await authClient.signIn.email({
+          email: data.email,
+          password: data.password,
+          fetchOptions: {
+            onSuccess: () => {
+              toast.success("Signed in successfully");
+              router.push("/dashboard" );
+            },
+            onError: (error) => {
+              toast.error(`Sign in failed: ${error.error.message}`);
+            }
+          }
+        });
+      });
       reset();
-      // You can add a success notification here
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
     }
   };
 
@@ -49,7 +64,7 @@ export default function SigninPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
+          <Link href="/public" className="inline-flex items-center gap-2 mb-6">
             <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">B</span>
             </div>
@@ -142,7 +157,10 @@ export default function SigninPage() {
                 className="w-full h-10 mt-6"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? "Signing in..." : "Sign in"}
+                {isPending ? <>
+                  <Loader2 className={"animate-spin"} />
+                  <span>Signing in...</span>
+                </> : "Sign in"}
               </Button>
 
               {/* Divider */}

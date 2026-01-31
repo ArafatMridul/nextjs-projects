@@ -1,13 +1,20 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import {useState, useEffect, useTransition} from 'react';
+import {Loader2, Menu, X} from 'lucide-react';
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { useConvexAuth } from 'convex/react';
+import {authClient} from "@/lib/auth-client";
+import {toast} from "sonner";
+import {useRouter} from "next/navigation";
 
 const NavBar = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
+    const [isPending, startTransition] = useTransition();
+    const {isAuthenticated, isLoading} = useConvexAuth();
+    const router = useRouter();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -23,6 +30,22 @@ const NavBar = () => {
         { name: 'Services', href: '#services' },
         { name: 'Contact', href: '#contact' },
     ];
+
+    const handleLogout = () => {
+        startTransition(async () => {
+            authClient.signOut({
+                fetchOptions: {
+                    onSuccess: () => {
+                        toast.success('Logout successful');
+                        router.push('/');
+                    },
+                    onError: (error) => {
+                        toast.error(`Logout failed: ${error.error.message}`);
+                    }
+                }
+            });
+        })
+    }
 
     return (
         <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
@@ -57,14 +80,22 @@ const NavBar = () => {
                     </div>
 
                     {/* Auth Buttons */}
-                    <div className="hidden md:flex items-center gap-3">
-                        <Button variant="ghost" size="sm" asChild>
-                            <Link href="/signin">Log in</Link>
-                        </Button>
-                        <Button size="sm" asChild>
-                            <Link href="/signup">Sign up</Link>
-                        </Button>
-                    </div>
+                    {isLoading ? null : isAuthenticated ? (
+                        <Link href="/dashboard">
+                            <Button className="ml-4 cursor-pointer">Dashboard</Button>
+                        </Link>
+                    ) : (
+                        <>
+                            <div className="hidden md:flex items-center gap-3">
+                                <Button variant="ghost" size="sm" asChild>
+                                    <Link href="/signin">Log in</Link>
+                                </Button>
+                                <Button size="sm" asChild>
+                                    <Link href="/signup">Sign up</Link>
+                                </Button>
+                            </div>
+                        </>
+                    )}
 
                     {/* Mobile menu button */}
                     <div className="md:hidden">
@@ -115,12 +146,20 @@ const NavBar = () => {
                         ))}
                     </div>
                     <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
-                        <Button variant="outline" className="w-full" asChild>
-                            <Link href="/login" onClick={() => setIsOpen(false)}>Log in</Link>
-                        </Button>
-                        <Button className="w-full" asChild>
-                            <Link href="/signup" onClick={() => setIsOpen(false)}>Sign up</Link>
-                        </Button>
+                        {isLoading ? null : isAuthenticated ? (
+                            <Link href="/dashboard">
+                                <Button className="w-full">Dashboard</Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Button variant="outline" className="w-full" asChild>
+                                    <Link href="/login" onClick={() => setIsOpen(false)}>Log in</Link>
+                                </Button>
+                                <Button className="w-full" asChild>
+                                    <Link href="/signup" onClick={() => setIsOpen(false)}>Sign up</Link>
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

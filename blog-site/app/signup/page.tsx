@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import {useState, useTransition} from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,15 +9,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, User, Eye, EyeOff } from "lucide-react";
+import {Mail, Lock, User, Eye, EyeOff, Loader2} from "lucide-react";
 import {signupSchema} from "@/schemas/signupSchema";
+import {authClient} from "@/lib/auth-client";
+import {toast} from "sonner";
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const {
     register,
@@ -30,15 +32,18 @@ export default function SignupPage() {
   console.log(errors)
 
   const onSubmit = async (data: SignupFormData) => {
-    setIsSubmitting(true);
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Form submitted:", data);
+      startTransition(async () => {
+        await authClient.signUp.email({
+          email: data.email,
+          name: data.fullName,
+          password: data.password,
+        })
+      })
       reset();
-      // You can add a success notification here
-    } finally {
-      setIsSubmitting(false);
+    } catch (error) {
+      toast.error("Failed to create account. Please try again.");
     }
   };
 
@@ -75,7 +80,7 @@ export default function SignupPage() {
                   placeholder="John Doe"
                   {...register("fullName")}
                   className="h-10"
-                  disabled={isSubmitting}
+                  disabled={isPending}
                 />
                 {errors.fullName && (
                   <p className="text-xs text-destructive mt-1">
@@ -96,7 +101,7 @@ export default function SignupPage() {
                   placeholder="you@example.com"
                   {...register("email")}
                   className="h-10"
-                  disabled={isSubmitting}
+                  disabled={isPending}
                 />
                 {errors.email && (
                   <p className="text-xs text-destructive mt-1">
@@ -118,13 +123,13 @@ export default function SignupPage() {
                     placeholder="••••••••"
                     {...register("password")}
                     className="h-10 pr-10"
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   >
                     {showPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -153,13 +158,13 @@ export default function SignupPage() {
                     placeholder="••••••••"
                     {...register("confirmPassword")}
                     className="h-10 pr-10"
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    disabled={isSubmitting}
+                    disabled={isPending}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="w-4 h-4" />
@@ -179,9 +184,10 @@ export default function SignupPage() {
               <Button
                 type="submit"
                 className="w-full h-10 mt-6"
-                disabled={isSubmitting}
+                disabled={isPending}
               >
-                {isSubmitting ? "Creating account..." : "Sign up"}
+                {isPending ? <><Loader2 /> <span>Signing up</span>
+                </> : "Sign up"}
               </Button>
 
               {/* Login Link */}
