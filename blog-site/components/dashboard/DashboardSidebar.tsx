@@ -3,24 +3,25 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-    LayoutDashboard,
-    FileText,
     Settings,
     User,
     LogOut,
     X,
     PenSquare,
     BarChart3,
+    Home,
+    FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import {useTransition} from "react";
 
 const sidebarItems = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "My Posts", href: "/dashboard/posts", icon: FileText },
-    { name: "Create Post", href: "/dashboard/create", icon: PenSquare },
+    { name: "Home", href: "/dashboard", icon: Home },
+    { name: "Blogs", href: "/dashboard/blogs", icon: FileText },
     { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
+    { name: "Create Post", href: "/dashboard/create", icon: PenSquare },
     { name: "Profile", href: "/dashboard/profile", icon: User },
     { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
@@ -33,19 +34,26 @@ interface DashboardSidebarProps {
 const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => {
     const pathname = usePathname();
     const router = useRouter();
+    const [isPending, startTransition] = useTransition();
 
-    const handleLogout = async () => {
-        await authClient.signOut({
-            fetchOptions: {
-                onSuccess: () => {
-                    toast.success("Logout successful");
-                    router.push("/");
-                },
-                onError: (error) => {
-                    toast.error(`Logout failed: ${error.error.message}`);
-                },
-            },
-        });
+    const handleLogout = () => {
+        startTransition(async () => {
+            try {
+                await authClient.signOut({
+                    fetchOptions: {
+                        onSuccess: () => {
+                            toast.success("Logout successful");
+                            router.push("/");
+                        },
+                        onError: (error) => {
+                            toast.error(`Logout failed: ${error.error.message}`);
+                        },
+                    },
+                });
+            } catch (error) {
+                toast.error(`Logout failed: ${error instanceof Error ? error.message : String(error)}`);
+            }
+        })
     };
 
     return (
@@ -109,11 +117,11 @@ const DashboardSidebar = ({ isOpen, onClose }: DashboardSidebarProps) => {
                     <div className="p-3 border-t border-sidebar-border">
                         <Button
                             variant="ghost"
-                            className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent/50"
+                            className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer"
                             onClick={handleLogout}
                         >
                             <LogOut className="h-5 w-5" />
-                            Logout
+                            {isPending ? "Logging out..." : "Logout"}
                         </Button>
                     </div>
                 </div>

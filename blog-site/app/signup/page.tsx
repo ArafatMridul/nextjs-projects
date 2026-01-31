@@ -13,6 +13,7 @@ import {Mail, Lock, User, Eye, EyeOff, Loader2} from "lucide-react";
 import {signupSchema} from "@/schemas/signupSchema";
 import {authClient} from "@/lib/auth-client";
 import {toast} from "sonner";
+import {useRouter} from "next/navigation";
 
 type SignupFormData = z.infer<typeof signupSchema>;
 
@@ -20,6 +21,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const {
     register,
@@ -40,6 +42,8 @@ export default function SignupPage() {
           name: data.fullName,
           password: data.password,
         })
+        toast.success("Account created successfully! Please sign in.");
+        router.push("/signin");
       })
       reset();
     } catch (error) {
@@ -186,7 +190,7 @@ export default function SignupPage() {
                 className="w-full h-10 mt-6"
                 disabled={isPending}
               >
-                {isPending ? <><Loader2 /> <span>Signing up</span>
+                {isPending ? <><Loader2 className={"animate-spin"} /> <span>Signing up</span>
                 </> : "Sign up"}
               </Button>
 
