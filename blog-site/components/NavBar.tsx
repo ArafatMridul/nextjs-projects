@@ -59,7 +59,7 @@ const NavBar = () => {
                     {/* Auth Buttons */}
                     <div className="hidden md:flex items-center gap-3">
                         <Button variant="ghost" size="sm" asChild>
-                            <Link href="/login">Log in</Link>
+                            <Link href="/signin">Log in</Link>
                         </Button>
                         <Button size="sm" asChild>
                             <Link href="/signup">Sign up</Link>
